@@ -1,6 +1,9 @@
 ﻿namespace HelpDesk_Flow.Enums
 {
-    public class UserRole
+    public enum UserRole
     {
+        User,
+        Technician,
+        Admin
     }
 }
