@@ -1,0 +1,145 @@
+# ============================================
+# HelpDesk Flow
+# ASP.NET Core + React/TypeScript
+# ============================================
+
+
+# --------------------------------------------
+# .NET / ASP.NET Core
+# --------------------------------------------
+
+bin/
+obj/
+
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+
+# --------------------------------------------
+# Visual Studio
+# --------------------------------------------
+
+.vs/
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+
+# --------------------------------------------
+# ASP.NET Core
+# --------------------------------------------
+
+# User secrets
+secrets.json
+
+# Development certificates
+*.pfx
+*.p12
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+
+
+# --------------------------------------------
+# Environment variables
+# --------------------------------------------
+
+.env
+.env.*
+!.env.example
+
+# Local environment overrides
+appsettings.Local.json
+appsettings.*.Local.json
+
+
+# --------------------------------------------
+# React / Node.js
+# --------------------------------------------
+
+node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# React/Vite build
+dist/
+dist-ssr/
+
+# Next.js (caso seja usado futuramente)
+.next/
+out/
+
+
+# --------------------------------------------
+# Testing / Coverage
+# --------------------------------------------
+
+coverage/
+TestResults/
+*.coverage
+*.coveragexml
+
+
+# --------------------------------------------
+# NuGet
+# --------------------------------------------
+
+*.nupkg
+*.snupkg
+packages/
+
+# NuGet generated files
+*.nuget.props
+*.nuget.targets
+
+
+# --------------------------------------------
+# Operating System
+# --------------------------------------------
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+
+# --------------------------------------------
+# Temporary files
+# --------------------------------------------
+
+*.tmp
+*.temp
+*.log
+*.cache
