@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>HelpDesk_Flow</RootNamespace>
+    <UserSecretsId>caf1a9b9-c2d9-489e-ac7f-e7592cbda9c8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
