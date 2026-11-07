@@ -47,6 +47,7 @@ export class App {
   readonly staff = computed(
     () => this.user()?.role === 'Admin' || this.user()?.role === 'Technician',
   );
+  readonly admin = computed(() => this.user()?.role === 'Admin');
   readonly today = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     day: 'numeric',
@@ -287,7 +288,7 @@ export class App {
       const [ticket, comments, technicians] = await Promise.all([
         this.api.request<Ticket>('GET', path),
         this.api.request<Comment[]>('GET', path + '/comments'),
-        this.staff()
+        this.admin()
           ? this.api.request<Person[]>('GET', '/users/technicians')
           : Promise.resolve([]),
       ]);
@@ -356,10 +357,19 @@ export class App {
     });
   }
 
-  async assign(id = this.assignedId) {
+  async assign() {
     const ticket = this.selected();
-    if (!ticket || !id) return;
-    await this.updateTicket('/assign', { technicianId: id }, 'Responsável atualizado.');
+    if (!ticket || !this.assignedId) return;
+    await this.updateTicket(
+      '/assign',
+      { technicianId: this.assignedId },
+      'Responsável atualizado.',
+    );
+  }
+
+  async take() {
+    if (!this.selected()) return;
+    await this.updateTicket('/take', {}, 'Chamado adicionado aos seus atendimentos.');
   }
 
   async changeStatus() {

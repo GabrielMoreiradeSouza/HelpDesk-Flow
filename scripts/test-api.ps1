@@ -63,13 +63,19 @@ $null = Request POST "$path/comments" 404 @{ content = 'Sem acesso.' } $other.ac
 $null = Request PUT $path 404 @{ title = 'Sem acesso' } $other.accessToken
 $null = Request PATCH "$path/status" 403 @{ status = 'InProgress' } $owner.accessToken
 $null = Request PATCH "$path/assign" 403 @{ technicianId = $tech.user.id } $owner.accessToken
-$null = Request PATCH "$path/assign" 422 @{ technicianId = $other.user.id } $tech.accessToken
+$null = Request PATCH "$path/assign" 403 @{ technicianId = $other.user.id } $tech.accessToken
+$null = Request GET '/users/technicians' 403 -Token $tech.accessToken
 $null = Request PATCH "$path/status" 409 @{ status = 'Closed' } $tech.accessToken
 $null = Request PUT $path 403 @{ title = 'Somente o solicitante pode editar' } $tech.accessToken
 $edited = Request PUT $path 200 @{ title = "Revisado $prefix" } $owner.accessToken
 Assert-That ($edited.title -eq "Revisado $prefix" -and $edited.priority -eq 'Critical') 'A edição parcial deve preservar a prioridade.'
-$assigned = Request PATCH "$path/assign" 200 @{ technicianId = $tech.user.id } $tech.accessToken
-Assert-That ($assigned.assignedTo.id -eq $tech.user.id) 'O responsável deve ser persistido.'
+$assigned = Request PATCH "$path/take" 200 @{} $tech.accessToken
+Assert-That ($assigned.assignedTo.id -eq $tech.user.id) 'O técnico deve conseguir pegar um chamado sem responsável.'
+$assignedToAdmin = Request PATCH "$path/assign" 200 @{ technicianId = $admin.user.id } $admin.accessToken
+Assert-That ($assignedToAdmin.assignedTo.id -eq $admin.user.id) 'O administrador deve conseguir reatribuir um chamado.'
+$null = Request PATCH "$path/take" 409 @{} $tech.accessToken
+$assigned = Request PATCH "$path/assign" 200 @{ technicianId = $tech.user.id } $admin.accessToken
+Assert-That ($assigned.assignedTo.id -eq $tech.user.id) 'O administrador deve conseguir atribuir o técnico responsável.'
 
 $code = 'HD-' + $ticket.id.Substring($ticket.id.Length - 12).ToUpperInvariant()
 $list = Request GET "/tickets?page=1&pageSize=1&status=Open&priority=Critical&search=$code" 200 -Token $owner.accessToken

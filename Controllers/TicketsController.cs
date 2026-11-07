@@ -35,7 +35,11 @@ public sealed class TicketsController(TicketService tickets) : ControllerBase
     public Task<TicketDto> ChangeStatus(Guid id, UpdateTicketStatusDto input, CancellationToken ct)
         => tickets.ChangeStatusAsync(Actor, id, input.Status!.Value, ct);
 
-    [HttpPatch("{id:guid}/assign"), Authorize(Roles = "Technician,Admin")]
+    [HttpPatch("{id:guid}/take"), Authorize(Roles = "Technician")]
+    public Task<TicketDto> Take(Guid id, CancellationToken ct)
+        => tickets.TakeAsync(Actor, id, ct);
+
+    [HttpPatch("{id:guid}/assign"), Authorize(Roles = "Admin")]
     public Task<TicketDto> Assign(Guid id, AssignTicketDto input, CancellationToken ct)
         => tickets.AssignAsync(Actor, id, input.TechnicianId!.Value, ct);
 

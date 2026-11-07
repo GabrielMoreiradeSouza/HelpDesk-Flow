@@ -21,7 +21,7 @@ public sealed class UsersController(AppDbContext db) : ControllerBase
         await db.Users.AsNoTracking().OrderBy(u => u.Name)
             .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Role, u.IsActive)).ToListAsync(ct);
 
-    [HttpGet("technicians"), Authorize(Roles = "Admin,Technician")]
+    [HttpGet("technicians"), Authorize(Roles = "Admin")]
     public async Task<IReadOnlyList<PersonDto>> Technicians(CancellationToken ct) =>
         await db.Users.AsNoTracking().Where(u => u.IsActive && (u.Role == UserRole.Admin || u.Role == UserRole.Technician))
             .OrderBy(u => u.Name).Select(u => new PersonDto(u.Id, u.Name)).ToListAsync(ct);

@@ -500,35 +500,37 @@
         @if (staff() && canChange()) {
           <section class="panel-section">
             <h4>Atendimento</h4>
-            <form class="row-form" (ngSubmit)="assign()">
-              <label
-                >Responsável<select
-                  name="assignedId"
-                  aria-label="Responsável"
-                  [(ngModel)]="assignedId"
+            @if (admin()) {
+              <form class="row-form" (ngSubmit)="assign()">
+                <label
+                  >Responsável<select
+                    name="assignedId"
+                    aria-label="Responsável"
+                    [(ngModel)]="assignedId"
+                  >
+                    <option value="" disabled>Selecione uma pessoa</option>
+                    @for (technician of technicians(); track technician.id) {
+                      <option [value]="technician.id">{{ technician.name }}</option>
+                    }
+                  </select></label
                 >
-                  <option value="" disabled>Selecione uma pessoa</option>
-                  @for (technician of technicians(); track technician.id) {
-                    <option [value]="technician.id">{{ technician.name }}</option>
-                  }
-                </select></label
-              >
-              <button
-                type="submit"
-                class="button secondary-button"
-                [disabled]="panelBusy() || !assignedId || assignedId === ticket.assignedTo?.id"
-              >
-                Atribuir
-              </button>
-            </form>
-            @if (ticket.assignedTo?.id !== currentUser.id) {
+                <button
+                  type="submit"
+                  class="button secondary-button"
+                  [disabled]="panelBusy() || !assignedId || assignedId === ticket.assignedTo?.id"
+                >
+                  Atribuir
+                </button>
+              </form>
+            }
+            @if (currentUser.role === 'Technician' && !ticket.assignedTo) {
               <button
                 type="button"
-                class="text-button"
+                class="button primary take-ticket"
                 [disabled]="panelBusy()"
-                (click)="assign(currentUser.id)"
+                (click)="take()"
               >
-                Assumir chamado
+                Pegar chamado
               </button>
             }
             <form class="row-form status-form" (ngSubmit)="changeStatus()">

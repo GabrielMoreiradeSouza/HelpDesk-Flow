@@ -26,7 +26,7 @@ O script gera credenciais locais em `.env.helpdesk`, inicia o PostgreSQL no Dock
 
 As três contas usam a senha do campo `HELPDESK_DEMO_PASSWORD` no arquivo local `.env.helpdesk`. Guarde esse arquivo junto ao volume local para conservar o acesso entre execuções.
 
-Comece com o solicitante, abra um chamado e anote o código exibido na fila. Entre como técnico, localize o chamado pelo código e clique em **Assumir chamado**. Mude a situação para **Em andamento**, **Resolvido** e **Fechado**. O administrador também pode alterar os perfis na tela **Usuários**.
+Comece com o solicitante, abra um chamado e anote o código exibido na fila. Entre como técnico, localize o chamado pelo código e clique em **Pegar chamado**. Mude a situação para **Em andamento**, **Resolvido** e **Fechado**. Apenas o administrador pode atribuir ou reatribuir chamados para outra pessoa e alterar os perfis na tela **Usuários**.
 
 Encerre a API com **Ctrl+C**. Para parar o PostgreSQL e manter os dados:
 

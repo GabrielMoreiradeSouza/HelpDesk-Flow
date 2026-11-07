@@ -101,6 +101,33 @@ public sealed class TicketService(TicketRepository tickets, AppDbContext db, ILo
         return await ReadAsync(actor, id, ct);
     }
 
+    public async Task<TicketDto> TakeAsync(User actor, Guid id, CancellationToken ct)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var ticket = await FindAsync(actor, id, ct);
+        EnsureEditable(ticket);
+
+        if (ticket.AssignedToId == actor.Id)
+            return await ReadAsync(actor, id, ct);
+        if (ticket.AssignedToId is not null)
+            throw new ApiException(409, "Este chamado já possui um responsável.");
+
+        ticket.AssignedToId = actor.Id;
+        try
+        {
+            await SaveChangeAsync(ticket, ct);
+            await transaction.CommitAsync(ct);
+        }
+        catch (Exception error) when ((error is DbUpdateException ? error.InnerException : error) is PostgresException
+            { SqlState: PostgresErrorCodes.SerializationFailure })
+        {
+            throw new ApiException(409, "O chamado foi atualizado por outra pessoa. Atualize e tente novamente.");
+        }
+
+        logger.LogInformation("Ticket {TicketId} pego pelo técnico {TechnicianId}.", id, actor.Id);
+        return await ReadAsync(actor, id, ct);
+    }
+
     public async Task<IReadOnlyList<CommentDto>> CommentsAsync(User actor, Guid id, CancellationToken ct)
     {
         await FindAsync(actor, id, ct);
