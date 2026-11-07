@@ -1,0 +1,69 @@
+:root {
+  color-scheme: light;
+  font-family: 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif;
+  color: #172033;
+  background: #f4f6f9;
+  --paper: #ffffff;
+  --ink: #172033;
+  --muted: #687386;
+  --line: #dfe4eb;
+  --forest: #172033;
+  --green: #2563eb;
+  --copper: #2563eb;
+  --serif: 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+:focus-visible {
+  outline: 2px solid #a44f26;
+  outline-offset: 3px;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+input,
+select,
+textarea {
+  background: var(--paper);
+  border: 1px solid #cbd2dc;
+  border-radius: 6px;
+  min-width: 0;
+  padding: 0.68rem 0.76rem;
+}
+textarea {
+  resize: vertical;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

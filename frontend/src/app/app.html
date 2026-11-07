@@ -1,0 +1,698 @@
+@if (user(); as currentUser) {
+  <div class="workspace">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark"><hd-icon name="mark" /></span>
+        <span
+          ><strong>HelpDesk<span> Flow</span></strong
+          ><small>Central de atendimento</small></span
+        >
+      </div>
+      <nav aria-label="Navegação principal">
+        <div class="nav-label">OPERAÇÃO</div>
+        <button
+          type="button"
+          [class.active]="view() === 'queue'"
+          [attr.aria-current]="view() === 'queue' ? 'page' : null"
+          (click)="selectView('queue')"
+        >
+          <hd-icon name="inbox" />{{ staff() ? 'Fila de chamados' : 'Meus chamados' }}
+        </button>
+        @if (staff()) {
+          <button
+            type="button"
+            [class.active]="view() === 'mine'"
+            [attr.aria-current]="view() === 'mine' ? 'page' : null"
+            (click)="selectView('mine')"
+          >
+            <hd-icon name="user" />Meus chamados
+          </button>
+        }
+        @if (currentUser.role === 'Admin') {
+          <div class="nav-label secondary">ADMINISTRAÇÃO</div>
+          <button
+            type="button"
+            [class.active]="view() === 'users'"
+            [attr.aria-current]="view() === 'users' ? 'page' : null"
+            (click)="selectView('users')"
+          >
+            <hd-icon name="users" />Usuários
+          </button>
+        }
+      </nav>
+      <div class="identity">
+        <span class="avatar">{{ initials(currentUser.name) }}</span>
+        <span class="identity-text"
+          ><strong>{{ currentUser.name }}</strong
+          ><small>{{ roleNames[currentUser.role] }}</small></span
+        >
+        <button class="icon-button" type="button" title="Sair" aria-label="Sair" (click)="logout()">
+          <hd-icon name="logout" />
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>Área de trabalho</span><hd-icon name="right" /><strong>{{
+            view() === 'users' ? 'Usuários' : 'Chamados'
+          }}</strong>
+        </div>
+        <div class="today"><hd-icon name="calendar" />{{ today }}</div>
+      </header>
+      <div class="content">
+        <section class="page-intro">
+          <div>
+            <span class="eyebrow"
+              ><i></i>{{ view() === 'users' ? 'ADMINISTRAÇÃO' : 'MESA DE SUPORTE' }}</span
+            >
+            <h1>
+              {{
+                view() === 'users'
+                  ? 'Usuários'
+                  : view() === 'mine' || !staff()
+                    ? 'Meus chamados'
+                    : 'Fila de chamados'
+              }}
+            </h1>
+            <p>
+              {{
+                view() === 'users'
+                  ? 'Consulte as contas e gerencie as permissões de acesso.'
+                  : view() === 'mine' || !staff()
+                    ? 'Acompanhe os chamados vinculados a você.'
+                    : 'Acompanhe as solicitações e organize o atendimento da equipe.'
+              }}
+            </p>
+          </div>
+          @if (view() !== 'users') {
+            <button type="button" class="button primary new-ticket" (click)="openNew()">
+              <hd-icon name="plus" /> Novo chamado
+            </button>
+          }
+        </section>
+        @if (notice()) {
+          <div class="notice" role="status">
+            <hd-icon name="check" />{{ notice() }}
+            <button class="icon-button" aria-label="Dispensar aviso" (click)="notice.set('')">
+              <hd-icon name="close" />
+            </button>
+          </div>
+        }
+        @if (view() === 'users') {
+          <section class="board">
+            @if (listError()) {
+              <div class="inline-error" role="alert">{{ listError() }}</div>
+            }
+            @if (loading()) {
+              <div class="empty" role="status">Carregando usuários…</div>
+            } @else if (members().length) {
+              <div class="table-wrap">
+                <table class="members-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col">E-mail</th>
+                      <th scope="col">Conta</th>
+                      <th scope="col">Perfil</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (member of members(); track member.id) {
+                      <tr>
+                        <td>
+                          <div class="person">
+                            <span class="avatar">{{ initials(member.name) }}</span
+                            ><strong>{{ member.name }}</strong>
+                          </div>
+                        </td>
+                        <td>{{ member.email }}</td>
+                        <td>{{ member.isActive ? 'Ativa' : 'Inativa' }}</td>
+                        <td>
+                          <select
+                            #rolePicker
+                            [disabled]="member.id === currentUser.id || !!savingUser()"
+                            [attr.aria-label]="'Perfil de ' + member.name"
+                            (change)="
+                              changeRole(member, $any(rolePicker.value));
+                              rolePicker.value = member.role
+                            "
+                          >
+                            @for (role of roles; track role) {
+                              <option [value]="role" [selected]="role === member.role">
+                                {{ roleNames[role] }}
+                              </option>
+                            }
+                          </select>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="empty">
+                <button class="button secondary-button" type="button" (click)="loadList()">
+                  Recarregar usuários
+                </button>
+              </div>
+            }
+          </section>
+        } @else {
+          <section class="snapshot" aria-label="Resumo dos chamados">
+            <button
+              type="button"
+              class="stat"
+              [class.chosen]="status === ''"
+              (click)="setStatus('')"
+            >
+              <span class="stat-icon neutral"><hd-icon name="list" /></span
+              ><span
+                ><small>Total na fila</small><strong>{{ counts().all }}</strong></span
+              >
+            </button>
+            <button
+              type="button"
+              class="stat"
+              [class.chosen]="status === 'Open'"
+              (click)="setStatus('Open')"
+            >
+              <span class="stat-icon copper"><hd-icon name="inbox" /></span
+              ><span
+                ><small>Abertos</small><strong>{{ counts().open }}</strong></span
+              >
+            </button>
+            <button
+              type="button"
+              class="stat"
+              [class.chosen]="status === 'InProgress'"
+              (click)="setStatus('InProgress')"
+            >
+              <span class="stat-icon blue"><hd-icon name="clock" /></span
+              ><span
+                ><small>Em andamento</small><strong>{{ counts().working }}</strong></span
+              >
+            </button>
+            <button
+              type="button"
+              class="stat"
+              [class.chosen]="status === 'Resolved'"
+              (click)="setStatus('Resolved')"
+            >
+              <span class="stat-icon green"><hd-icon name="check" /></span
+              ><span
+                ><small>Resolvidos</small><strong>{{ counts().resolved }}</strong></span
+              >
+            </button>
+          </section>
+
+          <section class="board" aria-label="Lista de chamados">
+            <div class="tabs" aria-label="Filtrar por situação">
+              @for (tab of statusTabs; track tab) {
+                <button
+                  type="button"
+                  [class.selected]="status === tab"
+                  [attr.aria-pressed]="status === tab"
+                  (click)="setStatus(tab)"
+                >
+                  {{ tab ? statusNames[tab] : 'Todos' }}
+                </button>
+              }
+            </div>
+            <div class="filters">
+              <label class="search"
+                ><hd-icon name="search" /><input
+                  type="search"
+                  maxlength="160"
+                  placeholder="Buscar por assunto, código ou solicitante"
+                  aria-label="Buscar chamados"
+                  [(ngModel)]="search"
+                  (ngModelChange)="filterChanged(true)"
+              /></label>
+              <label class="priority-filter"
+                ><span>Prioridade</span>
+                <select
+                  aria-label="Filtrar por prioridade"
+                  [(ngModel)]="priority"
+                  (ngModelChange)="filterChanged()"
+                >
+                  <option value="">Todas</option>
+                  @for (item of priorities; track item) {
+                    <option [value]="item">{{ priorityNames[item] }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            @if (listError()) {
+              <div class="empty" role="alert">
+                <strong>{{ listError() }}</strong
+                ><button type="button" class="button secondary-button" (click)="loadList()">
+                  Tentar novamente
+                </button>
+              </div>
+            } @else if (loading() && !listing()) {
+              <div class="empty" role="status">Carregando chamados…</div>
+            } @else if (listing(); as list) {
+              @if (list.items.length) {
+                <div class="table-wrap" [attr.aria-busy]="loading()">
+                  <table class="tickets-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Chamado</th>
+                        <th scope="col">Situação</th>
+                        <th scope="col">Prioridade</th>
+                        <th scope="col">Responsável</th>
+                        <th scope="col">Atualizado</th>
+                        <th scope="col"><span class="sr-only">Abrir</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (ticket of list.items; track ticket.id) {
+                        <tr>
+                          <td class="ticket-subject">
+                            <button
+                              type="button"
+                              class="ticket-link"
+                              (click)="openDetails(ticket.id)"
+                            >
+                              <small>{{ code(ticket) }}</small
+                              ><strong>{{ ticket.title }}</strong>
+                            </button>
+                          </td>
+                          <td>
+                            <span class="status" [attr.data-kind]="ticket.status"
+                              ><i></i>{{ statusNames[ticket.status] }}</span
+                            >
+                          </td>
+                          <td>
+                            <span class="priority" [attr.data-kind]="ticket.priority"
+                              ><i></i>{{ priorityNames[ticket.priority] }}</span
+                            >
+                          </td>
+                          <td>
+                            @if (ticket.assignedTo; as assignee) {
+                              <div class="person">
+                                <span class="avatar">{{ initials(assignee.name) }}</span
+                                ><span>{{ assignee.name }}</span>
+                              </div>
+                            } @else {
+                              <span class="muted">Sem responsável</span>
+                            }
+                          </td>
+                          <td class="table-date">{{ ticket.updatedAt | date: 'dd/MM, HH:mm' }}</td>
+                          <td class="row-action">
+                            <button
+                              type="button"
+                              class="icon-button"
+                              [attr.aria-label]="'Abrir ' + ticket.title"
+                              (click)="openDetails(ticket.id)"
+                            >
+                              <hd-icon name="right" />
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <div class="empty">
+                  <span class="stat-icon neutral"><hd-icon name="inbox" /></span>
+                  <strong>Nenhum chamado encontrado</strong>
+                  <span>{{
+                    search || priority || status
+                      ? 'Experimente ajustar os filtros.'
+                      : 'Os chamados desta fila vão aparecer aqui.'
+                  }}</span>
+                </div>
+              }
+              <footer class="board-foot">
+                <span
+                  >{{ list.totalItems }} {{ list.totalItems === 1 ? 'chamado' : 'chamados' }}</span
+                >
+                @if (list.totalPages > 1) {
+                  <div class="pagination">
+                    <button
+                      class="icon-button"
+                      type="button"
+                      aria-label="Página anterior"
+                      [disabled]="list.page === 1 || loading()"
+                      (click)="setPage(list.page - 1)"
+                    >
+                      <hd-icon name="left" />
+                    </button>
+                    <span>Página {{ list.page }} de {{ list.totalPages }}</span>
+                    <button
+                      class="icon-button"
+                      type="button"
+                      aria-label="Próxima página"
+                      [disabled]="list.page === list.totalPages || loading()"
+                      (click)="setPage(list.page + 1)"
+                    >
+                      <hd-icon name="right" />
+                    </button>
+                  </div>
+                }
+              </footer>
+            }
+          </section>
+        }
+      </div>
+    </main>
+  </div>
+
+  <dialog
+    #ticketDialog
+    class="ticket-dialog"
+    aria-labelledby="panel-title"
+    (cancel)="cancelPanel($event)"
+  >
+    <header class="panel-head">
+      <div>
+        <span class="eyebrow"><i></i>{{ selected() ? code(selected()!) : 'MESA DE SUPORTE' }}</span>
+        <h2 id="panel-title">
+          {{
+            panel() === 'new'
+              ? 'Novo chamado'
+              : panel() === 'edit'
+                ? 'Editar chamado'
+                : 'Detalhes do chamado'
+          }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Fechar painel"
+        [disabled]="panelBusy()"
+        (click)="closePanel()"
+      >
+        <hd-icon name="close" />
+      </button>
+    </header>
+    <div class="panel-content">
+      @if (panelError()) {
+        <div class="inline-error" role="alert">{{ panelError() }}</div>
+      }
+      @if (panelLoading()) {
+        <p role="status">Carregando detalhes…</p>
+      } @else if (panel() === 'new' || panel() === 'edit') {
+        <form class="stack" ngNativeValidate (ngSubmit)="saveTicket()">
+          @if (panel() === 'new' || canEditText()) {
+            <label
+              >Assunto<input
+                name="title"
+                required
+                maxlength="160"
+                [(ngModel)]="title"
+                placeholder="Resuma a solicitação"
+            /></label>
+            <label
+              >Descrição<textarea
+                name="description"
+                required
+                maxlength="8000"
+                rows="6"
+                [(ngModel)]="description"
+                placeholder="Conte o que aconteceu e informe o contexto necessário"
+              ></textarea>
+            </label>
+          }
+          <label
+            >Prioridade<select
+              name="formPriority"
+              aria-label="Prioridade"
+              [(ngModel)]="formPriority"
+            >
+              @for (item of priorities; track item) {
+                <option [value]="item">{{ priorityNames[item] }}</option>
+              }
+            </select></label
+          >
+          <div class="form-actions">
+            <button
+              type="button"
+              class="button secondary-button"
+              [disabled]="panelBusy()"
+              (click)="panel() === 'edit' ? panel.set('details') : closePanel()"
+            >
+              Cancelar
+            </button>
+            <button class="button primary" type="submit" [disabled]="panelBusy()">
+              {{ panel() === 'new' ? 'Abrir chamado' : 'Salvar alterações' }}
+            </button>
+          </div>
+        </form>
+      } @else if (selected(); as ticket) {
+        <div class="ticket-heading">
+          <div class="tag-row">
+            <span class="status" [attr.data-kind]="ticket.status"
+              ><i></i>{{ statusNames[ticket.status] }}</span
+            >
+            <span class="priority" [attr.data-kind]="ticket.priority"
+              ><i></i>{{ priorityNames[ticket.priority] }}</span
+            >
+          </div>
+          <h3>{{ ticket.title }}</h3>
+          <p class="description">{{ ticket.description }}</p>
+          @if (canChange() && (staff() || canEditText())) {
+            <button
+              type="button"
+              class="button secondary-button"
+              [disabled]="panelBusy()"
+              (click)="startEdit()"
+            >
+              <hd-icon name="edit" />{{ canEditText() ? 'Editar chamado' : 'Alterar prioridade' }}
+            </button>
+          }
+        </div>
+        <dl class="ticket-meta">
+          <div>
+            <dt>Solicitante</dt>
+            <dd>{{ ticket.requester.name }}</dd>
+          </div>
+          <div>
+            <dt>Responsável</dt>
+            <dd>{{ ticket.assignedTo?.name ?? 'Sem responsável' }}</dd>
+          </div>
+          <div>
+            <dt>Aberto em</dt>
+            <dd>{{ ticket.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          <div>
+            <dt>Última atualização</dt>
+            <dd>{{ ticket.updatedAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+          </div>
+          @if (ticket.resolvedAt) {
+            <div>
+              <dt>Resolvido em</dt>
+              <dd>{{ ticket.resolvedAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+            </div>
+          }
+          @if (ticket.closedAt) {
+            <div>
+              <dt>Fechado em</dt>
+              <dd>{{ ticket.closedAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+            </div>
+          }
+        </dl>
+        @if (staff() && canChange()) {
+          <section class="panel-section">
+            <h4>Atendimento</h4>
+            <form class="row-form" (ngSubmit)="assign()">
+              <label
+                >Responsável<select
+                  name="assignedId"
+                  aria-label="Responsável"
+                  [(ngModel)]="assignedId"
+                >
+                  <option value="" disabled>Selecione uma pessoa</option>
+                  @for (technician of technicians(); track technician.id) {
+                    <option [value]="technician.id">{{ technician.name }}</option>
+                  }
+                </select></label
+              >
+              <button
+                type="submit"
+                class="button secondary-button"
+                [disabled]="panelBusy() || !assignedId || assignedId === ticket.assignedTo?.id"
+              >
+                Atribuir
+              </button>
+            </form>
+            @if (ticket.assignedTo?.id !== currentUser.id) {
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="panelBusy()"
+                (click)="assign(currentUser.id)"
+              >
+                Assumir chamado
+              </button>
+            }
+            <form class="row-form status-form" (ngSubmit)="changeStatus()">
+              <label
+                >Mudar situação<select
+                  name="nextStatus"
+                  aria-label="Mudar situação"
+                  [(ngModel)]="nextStatus"
+                >
+                  <option value="" disabled>Selecione a próxima situação</option>
+                  @for (next of nextStatuses(); track next) {
+                    <option [value]="next">{{ statusNames[next] }}</option>
+                  }
+                </select></label
+              >
+              <button
+                type="submit"
+                class="button secondary-button"
+                [disabled]="panelBusy() || !nextStatus"
+              >
+                Atualizar
+              </button>
+            </form>
+          </section>
+        }
+        <section class="panel-section">
+          <h4>
+            <hd-icon name="comment" /> Comentários <span>{{ comments().length }}</span>
+          </h4>
+          @for (comment of comments(); track comment.id) {
+            <article class="comment">
+              <span class="avatar">{{ initials(comment.author.name) }}</span>
+              <div>
+                <strong>{{ comment.author.name }}</strong
+                ><time [attr.datetime]="comment.createdAt">{{
+                  comment.createdAt | date: 'dd/MM, HH:mm'
+                }}</time>
+                <p>{{ comment.content }}</p>
+              </div>
+            </article>
+          } @empty {
+            <p class="muted">Ainda não há comentários neste chamado.</p>
+          }
+          @if (canChange()) {
+            <form class="stack comment-form" (ngSubmit)="publishComment()">
+              <label
+                >Adicionar comentário<textarea
+                  rows="3"
+                  name="comment"
+                  maxlength="4000"
+                  [(ngModel)]="draftComment"
+                ></textarea>
+              </label>
+              <button
+                type="submit"
+                class="button primary"
+                [disabled]="panelBusy() || !draftComment.trim()"
+              >
+                Publicar comentário
+              </button>
+            </form>
+          }
+        </section>
+      }
+    </div>
+  </dialog>
+} @else {
+  <main class="auth">
+    <section class="auth-cover">
+      <div class="brand">
+        <span class="brand-mark"><hd-icon name="mark" /></span>
+        <span
+          ><strong>HelpDesk<span> Flow</span></strong
+          ><small>Central de atendimento</small></span
+        >
+      </div>
+      <div class="cover-copy">
+        <span class="eyebrow"><i></i> MESA DE SUPORTE</span>
+        <h1>Central de<br />atendimento.</h1>
+        <p>Abra uma solicitação e acompanhe cada etapa até a resolução.</p>
+      </div>
+      <svg class="cover-art" viewBox="0 0 560 320" fill="none" aria-hidden="true">
+        <path
+          d="M0 40h560M0 100h560M0 160h560M0 220h560M0 280h560M40 0v320M100 0v320M160 0v320M220 0v320M280 0v320M340 0v320M400 0v320M460 0v320M520 0v320"
+          stroke="#99ae9e"
+          opacity=".18"
+        />
+        <path d="M40 280h120v-60h120v-60h120v-60h120" stroke="#f2a775" stroke-width="2" />
+        <path
+          d="M100 280v-60h60v-60h120v-60h120V40h120"
+          stroke="#99ae9e"
+          opacity=".65"
+          stroke-dasharray="4 5"
+        />
+        <g fill="#202b25" stroke="#f2a775" stroke-width="2">
+          <circle cx="40" cy="280" r="5" />
+          <circle cx="160" cy="220" r="5" />
+          <circle cx="280" cy="160" r="5" />
+          <circle cx="400" cy="100" r="5" />
+          <circle cx="520" cy="100" r="5" />
+        </g>
+      </svg>
+    </section>
+    <section class="auth-form">
+      <div class="auth-inner">
+        <span class="eyebrow"><i></i> ACESSO AO SISTEMA</span>
+        <h2>{{ mode === 'login' ? 'Entre na sua conta' : 'Crie sua conta' }}</h2>
+        <p>
+          {{
+            mode === 'login'
+              ? 'Use seu e-mail para acessar a central.'
+              : 'Cadastre-se para abrir e acompanhar chamados.'
+          }}
+        </p>
+        @if (authError()) {
+          <div class="inline-error" role="alert">{{ authError() }}</div>
+        }
+        <form class="stack" ngNativeValidate (ngSubmit)="enter()">
+          @if (mode === 'register') {
+            <label
+              >Nome<input
+                type="text"
+                name="name"
+                autocomplete="name"
+                maxlength="120"
+                required
+                [(ngModel)]="name"
+            /></label>
+          }
+          <label
+            >E-mail<input
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="voce@empresa.com"
+              maxlength="180"
+              required
+              [(ngModel)]="email"
+          /></label>
+          <label
+            >Senha<input
+              type="password"
+              name="password"
+              [autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
+              [minlength]="mode === 'register' ? 8 : 1"
+              maxlength="128"
+              required
+              [(ngModel)]="password"
+          /></label>
+          @if (mode === 'register') {
+            <small class="muted">Use pelo menos 8 caracteres.</small>
+          }
+          <button type="submit" class="button primary" [disabled]="authBusy()">
+            {{ authBusy() ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta' }}
+            <hd-icon name="arrow" />
+          </button>
+        </form>
+        <div class="auth-switch">
+          {{ mode === 'login' ? 'Primeiro acesso?' : 'Já tem uma conta?' }}
+          <button type="button" class="text-button" [disabled]="authBusy()" (click)="toggleMode()">
+            {{ mode === 'login' ? 'Criar conta' : 'Entrar' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+}

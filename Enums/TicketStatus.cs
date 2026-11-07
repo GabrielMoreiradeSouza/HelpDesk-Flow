@@ -1,11 +1,10 @@
-﻿namespace HelpDesk_Flow.Enums
+namespace HelpDesk_Flow.Enums;
+
+public enum TicketStatus
 {
-    public enum TicketStatus
-    {
-        Open,
-        InProgress,
-        Resolved,
-        Closed,
-        Canceled
-    }
+    Open,
+    InProgress,
+    Resolved,
+    Closed,
+    Cancelled
 }

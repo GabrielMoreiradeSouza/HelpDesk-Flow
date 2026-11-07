@@ -1,6 +1,29 @@
-@HelpDesk_Flow_HostAddress = http://localhost:5031
+@baseUrl = http://localhost:5031
+@token = cole_o_accessToken_retornado_pelo_login
 
-GET {{HelpDesk_Flow_HostAddress}}/weatherforecast/
-Accept: application/json
+### Especificação da API
+GET {{baseUrl}}/openapi/v1.json
 
-###
+### Entrar com conta local (senha de .env.helpdesk)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@helpdesk.test",
+  "password": "substitua_pela_senha_local"
+}
+
+### Fila filtrada
+GET {{baseUrl}}/api/tickets?page=1&pageSize=8&status=Open
+Authorization: Bearer {{token}}
+
+### Abrir chamado
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Acesso ao portal",
+  "description": "A tela inicial não carrega ao entrar pela rede do escritório.",
+  "priority": "Medium"
+}

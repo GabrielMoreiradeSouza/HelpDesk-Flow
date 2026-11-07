@@ -1,17 +1,17 @@
-﻿using HelpDesk_Flow.Enums;
+using HelpDesk_Flow.Enums;
 
 namespace HelpDesk_Flow.Models
 {
     public class Ticket
     {
         public Guid Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public TicketStatus Status { get; set; }
-        public TicketPriority Priority { get; set; }
+        public TicketPriority Priority { get; set; } = TicketPriority.Medium;
 
         public Guid RequesterId { get; set; }
-        public User Requester { get; set; }
+        public User Requester { get; set; } = null!;
 
         public Guid? AssignedToId { get; set; }
         public User? AssignedTo { get; set; }

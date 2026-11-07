@@ -1,6 +1,6 @@
 # ============================================
 # HelpDesk Flow
-# ASP.NET Core + React/TypeScript
+# ASP.NET Core + Angular/TypeScript
 # ============================================
 
 
@@ -78,7 +78,7 @@ appsettings.*.Local.json
 
 
 # --------------------------------------------
-# React / Node.js
+# Angular / Node.js
 # --------------------------------------------
 
 node_modules/
@@ -88,7 +88,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# React/Vite build
+# Angular build
 dist/
 dist-ssr/
 
